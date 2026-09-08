@@ -4,13 +4,13 @@ Corrected version 2 source SHA-256: `1094bf5e5006c56e3e6c96c7bd547612a8102b0a99b
 
 - `python -m pytest`: 33 passed. This covers happy path, conflict/ineligible results, complete-byte digest and every bound identity, unavailable-source recovery, stale/revoked/expired decisions, replay, unauthorized callers, invalid inputs without mutation, supply conservation, normal vesting, claim/exception races, and the exact raw-string address representation observed on GenVM. A Direct Mode adapter executes the captured strict-equality validator function and proves changed findings vote false. Direct Mode does not reproduce GenVM sandbox isolation; live validator verification remains required after deployment.
 - `genvm-lint check contracts/vesting_exception_gate.py --json`: lint and semantic validation passed; contract `VestingExceptionAuthorizationGate`, 10 public methods, 3 views, 7 writes and no constructor parameters. The informational notice about a newer runner was not followed because this project uses the playbook's frozen deployment header.
-- `frontend: npm test`: 3 passed (input validation, timestamps, execution-receipt classification). These are utility tests, not browser workflow tests.
+- `frontend: npm test`: 4 passed (input validation, timestamps, schedule-window bounds and execution-receipt classification). These are utility tests, not wallet-extension tests.
 - `frontend: npm run build`: passed, Vite 7.3.6, 454 modules. Initial application JS approximately 10.27 kB before gzip; SDK separately loaded.
 - `frontend: npm audit --omit=dev --audit-level=high`: 0 vulnerabilities reported.
 - Chrome headless production smoke render passed at 1440 × 1200; `frontend-smoke.png` records the undeployed, no-fallback initial state. Local HTTP returned 200 for the application and `image/png` for the logo.
 - Supplied logo copied unchanged into `frontend/public/logo.png`.
 
-## Outstanding gates
+## Superseded deployment history
 
 Superseded Studionet deployment: `0x003383481158c03C9b3B820af829172e994aB944`.
 
@@ -19,11 +19,7 @@ Superseded Studionet deployment: `0x003383481158c03C9b3B820af829172e994aB944`.
 - Live ABI contains the expected 10 public methods (3 views, 7 nonpayable writes) and no constructor parameters.
 - A real `create_schedule` failed with `AttributeError: 'str' object has no attribute 'as_hex'`; GenVM supplied the ABI address as text. Readback remained `schedule_count = 0` and treasury remained the full supply. Version 2 canonicalizes string, Address-object and numeric address forms at every public boundary, includes a raw-string regression, and makes the frontend reject version 1. A replacement deployment is required.
 
-Post-deploy browser integration: account/network changes during asynchronous reads, contract changes, stale revisions, expired decision, unavailable evidence retry, transaction timeout/reconciliation, successful and blocked release flow. These require a real contract address and wallets.
-
-Runtime: exact pinned dependency/schema verification on GenVM and validator disagreement replay in the real sandbox. Local lint and the Direct Mode validator adapter are not deployment proof.
-
-Studionet: version 1 is superseded after the failed runtime transaction. Remaining: deploy exact corrected version 2, verify parity, create a schedule, publish authority-bound fixtures using actual deployment and schedule identities, complete positive consume/transfer and failure/recovery paths, and retain finalized transaction records plus before/after accounting.
+Version 1 is retained only as failure provenance. Version 2 below replaces it.
 
 ## Corrected deployment
 
@@ -36,4 +32,8 @@ Studionet: version 1 is superseded after the failed runtime transaction. Remaini
 - The beneficiary lifecycle is complete: assessment `0x7860a2c84161592403cbb0e6fbb722a708f29d960ec4a4e7963c39ae2ba55dc9`, consume `0x5e8f311b56fcc7bc13e9bce6f35cebd0702a747a16d7547e59a6ba3b18db6470`, blocked replay `0x664095307f34578898fb9daf94093faecc1dded21da7654e142dca2806fe4d64`, and transfer `0xc61757ce7cd5c8fcdcc4dc9867a915f16581cac03a29232994cbd467f8ab6a8b` all finalized with authoritative readbacks.
 - Final state: `CONSUMED`, released 25,000; beneficiary liquid 24,000; receiver liquid 1,000. Treasury 999,900,000 + remaining locked 75,000 + those liquid balances equals the fixed 1,000,000,000 supply.
 
-Production: configure the verified contract address, verify hosted frontend against that deployment, then publish reproducible evidence. No hosting or GitHub push has been performed yet.
+## Adversarial Studionet result
+
+Schedule 2 independently proves unauthorized owner/beneficiary calls, conflict blocking, stale revision rollback, expiry rollback, full-byte SHA-256 mismatch, deterministic retry, blocked consumption, corrected-source recovery, exact capped release and replay rejection. Final two-schedule accounting conserves all 1,000,000,000 VEST. Transaction-by-transaction results are in `docs/adversarial-live-evidence.md`.
+
+The local frontend now defaults to the verified version 2 deployment, performs an automatic identity read on load, and was visibly confirmed against live Studionet state (treasury 999,800,000; two schedules).

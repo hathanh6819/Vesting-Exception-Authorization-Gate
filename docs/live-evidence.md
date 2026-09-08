@@ -38,4 +38,4 @@
 
 Final conservation readback: treasury 999,900,000 + remaining locked allocation 75,000 + beneficiary liquid 24,000 + receiver liquid 1,000 = fixed supply 1,000,000,000. The lifecycle runner prompts for a key and never persists it.
 
-Conflict, unavailable-source recovery, invalid identity/digest, expiry, authorization and claim/exception race paths are covered by direct real-contract tests. They are not presented as separate live transactions on this consumed schedule.
+The isolated schedule 2 audit additionally proves live authority/beneficiary boundaries, conflict blocking, stale and expired revisions, full-byte digest mismatch, deterministic retry, corrected-source recovery, single-use consumption and two-schedule supply conservation. See [adversarial-live-evidence.md](adversarial-live-evidence.md).

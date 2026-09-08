@@ -25,7 +25,7 @@ npm run dev
 
 Direct tests call the real Python contract; only external HTTP/model boundaries are mocked. No fake data or fallback balances exist in the runtime frontend. Test receipts do not constitute live network evidence.
 
-## Deployment workflow — pending live verification
+## Verified Studionet deployment
 
 Superseded Studionet deployment: `0x003383481158c03C9b3B820af829172e994aB944`. Its source matched version 1, but a real `create_schedule` exposed that GenVM delivered the ABI address as a string while the address formatter assumed `.as_hex`. State remained fresh (`schedule_count = 0`, full treasury). Version 2 normalizes both runtime forms and adds direct regression coverage. The production address was cleared until the corrected source was redeployed.
 
@@ -36,6 +36,6 @@ Verified replacement deployment: `0x18Dbe884Bf6403CceC4b8fFa254dbE9bA0421d91`. L
 3. Publish an authority-authored UTF-8 JSON decision in the schedule's GitHub repository. Required exact fields: `contract`, `schedule_id` (integer), `beneficiary`, `decision_id`, `statement`. Addresses must be lowercase. Include explicit milestone cancellation terms and any remaining obligations. This is an authority attestation, not independent proof of a DAO vote.
 4. Lock a full Git commit, path and SHA-256 of complete raw bytes via `record_cancellation`. Expiry must be in the next seven days. Contract fetches the fixed-commit raw source, verifies all bytes and identity, and fails closed above 16,000 bytes.
 5. Beneficiary assesses, inspects findings, consumes once, reads balance and transfers released VEST. Record finalized execution, before/after schedule and balances, then prove replay/outsider/stale/expired calls cannot release more tokens.
-6. Run a conflict decision and an unavailable-evidence retry, as well as normal vesting after early release. Validate the actual frontend wallet/context flows. Only then publish evidence and configure `VITE_CONTRACT_ADDRESS` for production.
+6. Run conflict, digest mismatch, retry, expiry, stale revision, recovery and replay paths; retain finalized transactions and before/after accounting.
 
-Not yet submission-ready: deployed-source parity, live positive/negative transactions, browser interaction tests and production deployment remain verification gates. See BUILD_PLAN.md for invariants and scope.
+Deployed-source parity, the positive lifecycle and the isolated adversarial lifecycle are complete. See `docs/live-evidence.md` and `docs/adversarial-live-evidence.md` for reproducible evidence. The frontend defaults to the verified deployment and still permits an explicit environment override.
