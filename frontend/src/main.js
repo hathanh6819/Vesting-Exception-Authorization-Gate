@@ -1,5 +1,5 @@
 import './style.css';
-import {address,integer,timestamp,executionSucceeded} from './rules.js';
+import {address,integer,timestamp,scheduleWindow,executionSucceeded} from './rules.js';
 
 let account='', epoch=0, busy=false, schedule=null, sdkPromise;
 const $=id=>document.getElementById(id);
@@ -19,7 +19,7 @@ function bind(id,handler,event='click'){$(id).addEventListener(event,async e=>{e
 const data=e=>Object.fromEntries(new FormData(e.target));
 bind('connect',connect);bind('load',async()=>{const token=epoch,info=await identity();if(token===epoch)status(`Connected to verified contract interface. Treasury: ${info.treasury} VEST. Schedules: ${info.schedule_count}.`);});
 bind('inspect',async e=>{await identity();await inspect(integer(data(e).sid));},'submit');
-bind('create',e=>{const d=data(e);return write('create_schedule',[address(d.beneficiary),integer(d.amount),timestamp(d.start),timestamp(d.end),integer(d.bps),d.repo,d.policy]);},'submit');
+bind('create',e=>{const d=data(e),[start,end]=scheduleWindow(timestamp(d.start),timestamp(d.end));return write('create_schedule',[address(d.beneficiary),integer(d.amount),start,end,integer(d.bps),d.repo,d.policy]);},'submit');
 bind('decision',e=>{const d=data(e);return write('record_cancellation',[integer(d.sid),d.decision,d.commit,d.path,d.digest,timestamp(d.expiry)]);},'submit');
 bind('transfer',e=>{const d=data(e);return write('transfer',[address(d.recipient),integer(d.amount)]);},'submit');
 for(const [id,method,revision] of [['assess','assess_exception',true],['consume','consume_exception',true],['claim','claim_vested',false],['revoke','revoke_decision',false]])bind(id,()=>{if(!schedule)throw Error('Load a schedule first.');return write(method,revision?[Number(schedule.id),Number(schedule.decision_revision)]:[Number(schedule.id)]);});
