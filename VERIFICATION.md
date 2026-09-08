@@ -31,6 +31,7 @@ Studionet: version 1 is superseded after the failed runtime transaction. Remaini
 - Live identity: version `2`, owner `0xa365f55a3bf352767bc5c5739ffddaee8fcf3a19`, VEST test-token ledger, supply and treasury `1,000,000,000`, schedules `0`.
 - `getContractCode`: 10,896 characters, SHA-256 `1094bf5e5006c56e3e6c96c7bd547612a8102b0a99b743061e638ffc13f5229c`, exact local/deployed parity.
 - Live ABI: expected 10 methods. The production frontend is bound to this replacement.
-- Remaining gate: finalized owner schedule plus beneficiary evidence, recovery, consume/replay/transfer and accounting readbacks.
+- Owner schedule transaction `0x01988bbc32ff741aca5aad7de324d7549bc1f8573804e08d097f7fb781a401d9` succeeded. Schedule 1 binds the expected beneficiary/repository/policy, locks 100,000 VEST, and leaves released at zero. Fixture commit `dd5fd316b99e601bae4e8a244c99f8c4e23cea07` was fetched from raw GitHub; all 483 bytes hash to `dc54dcc25fd5caa0a383799edc9abbe606e580b0fe4a7397f86289f3f645358e`.
+- Remaining gate: owner records the committed decision, then beneficiary assessment, recovery, consume/replay/transfer and final accounting readbacks.
 
 Production: configure the verified contract address, verify hosted frontend against that deployment, then publish reproducible evidence. No hosting or GitHub push has been performed yet.
