@@ -9,7 +9,24 @@ SUPPLY = 1000000000
 MAX_BYTES = 16000
 
 def addr(a):
-    return str(a.as_hex).lower()
+    if hasattr(a, 'as_hex'):
+        return str(a.as_hex).lower()
+    text=str(a).strip().lower()
+    if text.startswith('0x'):
+        return text
+    try:
+        return '0x'+format(int(a),'040x')
+    except Exception:
+        return text
+
+def valid_addr(a):
+    text=addr(a)
+    return len(text)==42 and text.startswith('0x') and all(c in '0123456789abcdef' for c in text[2:])
+
+def address_key(a):
+    text=addr(a)
+    require(valid_addr(text),'INVALID_ADDRESS')
+    return Address(text)
 
 def now():
     return int(datetime.fromisoformat(str(gl.message_raw['datetime']).replace('Z', '+00:00')).timestamp())
@@ -49,7 +66,8 @@ class VestingExceptionAuthorizationGate(gl.Contract):
     @gl.public.write
     def create_schedule(self, beneficiary: Address, amount: u256, start: u256, end: u256, exception_bps: u256, repository: str, policy: str) -> int:
         require(gl.message.sender_address == self.owner, 'ONLY_DAO')
-        require(beneficiary != self.owner and addr(beneficiary) != '0x'+'0'*40, 'INVALID_BENEFICIARY')
+        beneficiary_text=addr(beneficiary)
+        require(valid_addr(beneficiary_text) and beneficiary_text!=addr(self.owner) and beneficiary_text!='0x'+'0'*40, 'INVALID_BENEFICIARY')
         require(0 < amount <= self.treasury, 'INVALID_AMOUNT')
         require(int(start) >= now() and start < end and int(end)-int(start) <= 31536000, 'INVALID_WINDOW')
         require(0 < exception_bps <= 10000 and int(amount)*int(exception_bps)//10000 > 0, 'INVALID_CAP')
@@ -57,7 +75,7 @@ class VestingExceptionAuthorizationGate(gl.Contract):
         require(locator(repo, 'decision.json', 'a'*40), 'INVALID_REPOSITORY')
         require(20 <= len(policy) <= 2000, 'INVALID_POLICY')
         sid = u256(int(self.count)+1)
-        record = dict(id=int(sid), beneficiary=addr(beneficiary), amount=int(amount), start=int(start), end=int(end), bps=int(exception_bps), repository=repo, policy=policy, released=0, exception_used=False, decision_revision=0, review='NONE', decision=None, receipt='', findings=None)
+        record = dict(id=int(sid), beneficiary=beneficiary_text, amount=int(amount), start=int(start), end=int(end), bps=int(exception_bps), repository=repo, policy=policy, released=0, exception_used=False, decision_revision=0, review='NONE', decision=None, receipt='', findings=None)
         self.treasury = u256(int(self.treasury)-int(amount))
         self.count = sid
         self.schedules[sid] = encode(record)
@@ -164,8 +182,9 @@ class VestingExceptionAuthorizationGate(gl.Contract):
 
     @gl.public.write
     def transfer(self, recipient: Address, amount: u256) -> str:
-        sender=gl.message.sender_address
-        require(recipient!=sender and addr(recipient)!='0x'+'0'*40, 'INVALID_RECIPIENT')
+        sender=address_key(gl.message.sender_address)
+        recipient=address_key(recipient)
+        require(addr(recipient)!=addr(sender) and addr(recipient)!='0x'+'0'*40, 'INVALID_RECIPIENT')
         balance=self.balances.get(sender,u256(0))
         require(0<amount<=balance,'INSUFFICIENT_BALANCE')
         self.balances[sender]=u256(int(balance)-int(amount))
@@ -174,7 +193,7 @@ class VestingExceptionAuthorizationGate(gl.Contract):
 
     @gl.public.view
     def get_info(self) -> dict:
-        return dict(name='VestingExceptionAuthorizationGate',version=1,owner=addr(self.owner),symbol='VEST',test_token=True,total_supply=SUPPLY,treasury=int(self.treasury),schedule_count=int(self.count))
+        return dict(name='VestingExceptionAuthorizationGate',version=2,owner=addr(self.owner),symbol='VEST',test_token=True,total_supply=SUPPLY,treasury=int(self.treasury),schedule_count=int(self.count))
 
     @gl.public.view
     def get_schedule(self, schedule_id: u256) -> dict:
@@ -182,6 +201,6 @@ class VestingExceptionAuthorizationGate(gl.Contract):
 
     @gl.public.view
     def balance_of(self, account: Address) -> str:
-        return str(self.balances.get(account,u256(0)))
+        return str(self.balances.get(address_key(account),u256(0)))
 
 Contract = VestingExceptionAuthorizationGate

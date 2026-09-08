@@ -37,8 +37,6 @@ def prepare(c, vm, body=None, digest=None, status=200, findings=None):
     vm.mock_llm('Evaluate a DAO', json.dumps(findings if findings is not None else dict(cancellation_explicit=True, policy_covered=True, conflicting_obligations=False)))
 
 def act(c, vm, method, *args):
-    if method == 'transfer':
-        args = (address(args[0]), *args[1:])
     with vm.prank(address(BEN)):
         from genlayer.gl.vm import UserError
         try:
@@ -49,6 +47,13 @@ def act(c, vm, method, *args):
 def conserve(c):
     s = c.get_schedule(1)
     assert c.get_info()['treasury'] + s['amount']-s['released'] + int(c.balance_of(address(BEN))) + int(c.balance_of(address(OUT))) == 1000000000
+
+def test_runtime_string_addresses(direct_vm, direct_deploy):
+    warp(direct_vm,T)
+    c=direct_deploy('contracts/vesting_exception_gate.py')
+    assert c.create_schedule(BEN,10000,T,T+10000,2500,'dao/decisions',POLICY)==1
+    assert c.get_schedule(1)['beneficiary']==BEN
+    assert c.balance_of(BEN)=='0'
 
 def test_happy_consume_transfer_replay(setup):
     c, vm = setup
