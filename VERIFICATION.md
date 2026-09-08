@@ -25,4 +25,12 @@ Runtime: exact pinned dependency/schema verification on GenVM and validator disa
 
 Studionet: version 1 is superseded after the failed runtime transaction. Remaining: deploy exact corrected version 2, verify parity, create a schedule, publish authority-bound fixtures using actual deployment and schedule identities, complete positive consume/transfer and failure/recovery paths, and retain finalized transaction records plus before/after accounting.
 
+## Corrected deployment
+
+- Address: `0x18Dbe884Bf6403CceC4b8fFa254dbE9bA0421d91`.
+- Live identity: version `2`, owner `0xa365f55a3bf352767bc5c5739ffddaee8fcf3a19`, VEST test-token ledger, supply and treasury `1,000,000,000`, schedules `0`.
+- `getContractCode`: 10,896 characters, SHA-256 `1094bf5e5006c56e3e6c96c7bd547612a8102b0a99b743061e638ffc13f5229c`, exact local/deployed parity.
+- Live ABI: expected 10 methods. The production frontend is bound to this replacement.
+- Remaining gate: finalized owner schedule plus beneficiary evidence, recovery, consume/replay/transfer and accounting readbacks.
+
 Production: configure the verified contract address, verify hosted frontend against that deployment, then publish reproducible evidence. No hosting or GitHub push has been performed yet.

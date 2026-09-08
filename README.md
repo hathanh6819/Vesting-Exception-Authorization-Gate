@@ -27,7 +27,9 @@ Direct tests call the real Python contract; only external HTTP/model boundaries 
 
 ## Deployment workflow — pending live verification
 
-Superseded Studionet deployment: `0x003383481158c03C9b3B820af829172e994aB944`. Its source matched version 1, but a real `create_schedule` exposed that GenVM delivered the ABI address as a string while the address formatter assumed `.as_hex`. State remained fresh (`schedule_count = 0`, full treasury). Version 2 normalizes both runtime forms and adds direct regression coverage. The production frontend intentionally has no address until the corrected source is redeployed.
+Superseded Studionet deployment: `0x003383481158c03C9b3B820af829172e994aB944`. Its source matched version 1, but a real `create_schedule` exposed that GenVM delivered the ABI address as a string while the address formatter assumed `.as_hex`. State remained fresh (`schedule_count = 0`, full treasury). Version 2 normalizes both runtime forms and adds direct regression coverage. The production address was cleared until the corrected source was redeployed.
+
+Verified replacement deployment: `0x18Dbe884Bf6403CceC4b8fFa254dbE9bA0421d91`. Live `get_info` reports version 2, the expected owner, full initial treasury and zero schedules. Complete deployed-source SHA-256 exactly matches the corrected local source. The production frontend is configured for this address; lifecycle verification remains pending.
 
 1. Deploy `contracts/vesting_exception_gate.py` on Studionet using the DAO authority wallet; constructor has no arguments. Archive exact source and its SHA-256.
 2. Enter the returned address in the UI; read contract identity, connect authority, and create a schedule for a separate beneficiary with a future start/end.
