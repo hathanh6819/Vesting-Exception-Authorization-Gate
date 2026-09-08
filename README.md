@@ -2,6 +2,8 @@
 
 A focused Studionet prototype for early vesting release after an authenticated DAO milestone cancellation. The supplied logo is used unchanged. The UI is a new treasury workspace, not a clone of the previous dApps.
 
+Live application: [vesting-exception-authorization-gate.pages.dev](https://vesting-exception-authorization-gate.pages.dev/)
+
 ## Scope
 
 VEST is an internal, transferable test-token ledger with a fixed 1,000,000,000-unit supply. It is not an external ERC-20 and accepts no GEN deposits. The deploying wallet is the decision authority, not a verified DAO voting adapter. Beneficiaries must be separate wallets. Review eligibility alone does not move tokens: `consume_exception` verifies the current revision and expiry, marks the exception consumed, and releases the capped allocation in one contract write.

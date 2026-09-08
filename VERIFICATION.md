@@ -37,3 +37,10 @@ Version 1 is retained only as failure provenance. Version 2 below replaces it.
 Schedule 2 independently proves unauthorized owner/beneficiary calls, conflict blocking, stale revision rollback, expiry rollback, full-byte SHA-256 mismatch, deterministic retry, blocked consumption, corrected-source recovery, exact capped release and replay rejection. Final two-schedule accounting conserves all 1,000,000,000 VEST. Transaction-by-transaction results are in `docs/adversarial-live-evidence.md`.
 
 The local frontend now defaults to the verified version 2 deployment, performs an automatic identity read on load, and was visibly confirmed against live Studionet state (treasury 999,800,000; two schedules).
+
+## Cloudflare Pages
+
+- Production URL: `https://vesting-exception-authorization-gate.pages.dev/`.
+- Cloudflare returned HTTP 200 for the production alias.
+- Browser verification loaded the deployed contract address and completed the automatic Studionet identity read: version 2, treasury 999,800,000 and two schedules.
+- The Cloudflare API token was provided only to the temporary deployment process and was not stored in source, configuration or Git history.
