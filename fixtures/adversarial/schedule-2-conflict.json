@@ -1,0 +1,7 @@
+{
+  "contract": "0x18dbe884bf6403ccec4b8ffa254dbe9ba0421d91",
+  "schedule_id": 2,
+  "beneficiary": "0x1d283b45974b0be9630dfd1dec6a62a9b72b2760",
+  "decision_id": "VEAG-SCHEDULE-2-CONFLICT-2026-09-08",
+  "statement": "The DAO explicitly cancels milestone schedule 2, but the beneficiary must continue integration support and complete the remaining deliverables for thirty days. These continuing duties contradict a final cancellation and must prevent exception authorization."
+}
