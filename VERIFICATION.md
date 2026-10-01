@@ -8,7 +8,7 @@ Multi-Party DAO Cancellation Quorum source SHA-256: `8999e9be0ffae6b4e9aa85dd5b4
 - `genvm-lint check contracts/vesting_exception_gate.py --json`: passed; 14 public methods, 5 views, 9 writes and no constructor parameters.
 - `frontend: npm test -- --run`: 4 passed.
 - `frontend: npm run build`: passed, Vite 7.3.6, 454 modules.
-- Live verification is pending a new Studionet deployment. The version 2 evidence below is retained as historical provenance and is not evidence for version 3.
+- Studionet deployment `0x6ABc04f05FB0e5450De3F17DDeE449A52a537022`: 14,868 deployed source bytes exactly match local source and SHA-256. Live council setup, proposal isolation before quorum, distinct-member activation, eligible assessment, exact 25,000 VEST release and replay protection are complete in `docs/live-e2e-v3.md`.
 
 ## Version 2 historical verification — 2026-09-08
 

@@ -29,7 +29,7 @@ Direct tests call the real Python contract; only external HTTP/model boundaries 
 
 ## Verified Studionet deployment
 
-Version 3 is implemented and locally verified but requires a new Studionet deployment. Until that lifecycle is complete, the public application and addresses below remain version 2 historical evidence. See [`MILESTONE_UPGRADE.md`](MILESTONE_UPGRADE.md) and [`docs/live-e2e-v3.md`](docs/live-e2e-v3.md).
+Version 3 is deployed at `0x6ABc04f05FB0e5450De3F17DDeE449A52a537022`. Its 14,868 deployed source bytes exactly match the committed contract. The finalized lifecycle proves two-party quorum activation, AI assessment, bounded consumption and replay protection. See [`MILESTONE_UPGRADE.md`](MILESTONE_UPGRADE.md) and [`docs/live-e2e-v3.md`](docs/live-e2e-v3.md). Version 2 below is retained as historical provenance.
 
 Superseded Studionet deployment: `0x003383481158c03C9b3B820af829172e994aB944`. Its source matched version 1, but a real `create_schedule` exposed that GenVM delivered the ABI address as a string while the address formatter assumed `.as_hex`. State remained fresh (`schedule_count = 0`, full treasury). Version 2 normalizes both runtime forms and adds direct regression coverage. The production address was cleared until the corrected source was redeployed.
 

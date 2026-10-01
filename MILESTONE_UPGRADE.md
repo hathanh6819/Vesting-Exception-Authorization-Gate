@@ -28,4 +28,4 @@ An unapproved proposal cannot overwrite or revoke an existing active decision. A
 
 ## Deployment status
 
-Version 3 requires a new Studionet deployment because it introduces new persistent storage and public methods. The v2 deployment remains historical evidence and must not be presented as the v3 deployment. After deployment, complete the lifecycle in [`docs/live-e2e-v3.md`](docs/live-e2e-v3.md), then update the frontend contract address and production deployment.
+Version 3 is deployed at `0x6ABc04f05FB0e5450De3F17DDeE449A52a537022`. Live source retrieval exactly matches all 14,868 local bytes and the documented SHA-256. Council configuration, proposal non-activation before quorum, distinct-member activation, AI assessment, bounded consumption and replay protection are finalized on Studionet. See [`docs/live-e2e-v3.md`](docs/live-e2e-v3.md).
