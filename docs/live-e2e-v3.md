@@ -44,6 +44,7 @@ Replay transaction: `0x9028c94fd611005ef62e9622060b6766445505db8d3aee16f1b752552
 
 ## Production application
 
-- Production URL: `PENDING`
-- Production commit: `PENDING`
-- Browser verification of v3 identity and council threshold: `PENDING`
+- Production URL: `https://vesting-exception-authorization-gate.pages.dev/`
+- Immutable deployment URL: `https://c0c366b4.vesting-exception-authorization-gate.pages.dev/`
+- Production source commit: `0027aad`
+- Cloudflare deployment succeeded and both URLs returned HTTP 200. The served bundle `assets/index-DjksBqNZ.js` contains the exact v3 address `0x6ABc04f05FB0e5450De3F17DDeE449A52a537022` and enforces the `version 3 with council quorum` identity check.
