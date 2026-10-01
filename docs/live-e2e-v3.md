@@ -4,10 +4,10 @@ This file is the canonical checklist and evidence record for the Multi-Party DAO
 
 ## Deployment
 
-- Contract address: `PENDING`
+- Contract address: `0x6ABc04f05FB0e5450De3F17DDeE449A52a537022`
 - Deployment transaction: `PENDING`
 - Deployed source SHA-256: `8999e9be0ffae6b4e9aa85dd5b40aaaa7beb9d4ce0fc73ce983c8e9f1cd1170a`
-- `get_info` readback: `PENDING`
+- `get_info` readback: version 3; owner `0xa365f55a3bf352767bc5c5739ffddaee8fcf3a19`; council threshold 2/3; treasury 999,900,000 VEST; one schedule.
 - Deployed/local source parity: `PENDING`
 
 ## Owner transactions
@@ -16,7 +16,9 @@ This file is the canonical checklist and evidence record for the Multi-Party DAO
 2. Verify `get_governance()` returns the owner and both members, with threshold `2`.
 3. Call `create_schedule(...)` from the owner after committing the exact v3 fixture.
 
-Transactions and readbacks: `PENDING`
+Council configuration transaction: `0xb266ed5afe6ec3bf5cd5e0826b5dd4489ca16a5d987aa96c2027fb62a109fbc8`.
+
+Schedule creation transaction: `0x592ccbad1416218816b22165edfcec236f98dc83e621c90f8c01f74225825023`. Readback confirms schedule 1, beneficiary `0x260d102f611c8a100e3f9036cf51544d148ee293`, allocation 100,000 VEST, 25% exception cap, revision 0, review `NONE`, and released 0. Treasury decreased exactly once from 1,000,000,000 to 999,900,000.
 
 ## Quorum lifecycle
 

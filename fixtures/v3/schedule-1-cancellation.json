@@ -1,0 +1,7 @@
+{
+  "contract": "0x6abc04f05fb0e5450de3f17ddee449a52a537022",
+  "schedule_id": 1,
+  "beneficiary": "0x260d102f611c8a100e3f9036cf51544d148ee293",
+  "decision_id": "v3-cancel-1",
+  "statement": "The DAO explicitly and permanently cancels milestone 1. All work, delivery, reporting, maintenance, and other continuing obligations under this milestone end immediately. No contradictory terms or continuing duties remain. The council authorizes evaluation under the schedule's locked exception policy."
+}
