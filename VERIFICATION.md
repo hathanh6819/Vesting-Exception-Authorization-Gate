@@ -1,4 +1,16 @@
-# Local verification — 2026-09-08
+# Local verification
+
+## Version 3 milestone — 2026-10-01
+
+Multi-Party DAO Cancellation Quorum source SHA-256: `8999e9be0ffae6b4e9aa85dd5b40aaaa7beb9d4ce0fc73ce983c8e9f1cd1170a`.
+
+- `python -m pytest -q`: 34 passed, including unilateral activation blocking, outsider rejection, duplicate-vote rejection and successful quorum activation.
+- `genvm-lint check contracts/vesting_exception_gate.py --json`: passed; 14 public methods, 5 views, 9 writes and no constructor parameters.
+- `frontend: npm test -- --run`: 4 passed.
+- `frontend: npm run build`: passed, Vite 7.3.6, 454 modules.
+- Live verification is pending a new Studionet deployment. The version 2 evidence below is retained as historical provenance and is not evidence for version 3.
+
+## Version 2 historical verification — 2026-09-08
 
 Corrected version 2 source SHA-256: `1094bf5e5006c56e3e6c96c7bd547612a8102b0a99b743061e638ffc13f5229c`.
 

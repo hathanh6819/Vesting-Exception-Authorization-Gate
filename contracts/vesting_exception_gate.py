@@ -53,21 +53,57 @@ class VestingExceptionAuthorizationGate(gl.Contract):
     count: u256
     balances: TreeMap[Address, u256]
     schedules: TreeMap[u256, str]
+    council_members: TreeMap[Address, u256]
+    proposal_nonces: TreeMap[u256, u256]
+    proposals: TreeMap[u256, str]
+    proposal_approvals: TreeMap[str, u256]
+    council_size: u256
+    council_threshold: u256
+    council_member_a: Address
+    council_member_b: Address
 
     def __init__(self):
         self.owner = gl.message.sender_address
         self.treasury = u256(SUPPLY)
         self.count = u256(0)
+        self.council_size = u256(0)
+        self.council_threshold = u256(0)
 
     def _load(self, sid):
         require(sid > 0 and sid <= self.count, 'SCHEDULE_NOT_FOUND')
         return json.loads(self.schedules[sid])
 
+    def _council_caller(self):
+        require(self.council_size > 0, 'COUNCIL_NOT_CONFIGURED')
+        caller=address_key(gl.message.sender_address)
+        require(self.council_members.get(caller,u256(0))==1, 'ONLY_COUNCIL')
+        return addr(caller)
+
+    def _approval_key(self, schedule_id, proposal_nonce, member):
+        return str(int(schedule_id))+'|'+str(int(proposal_nonce))+'|'+member
+
+    @gl.public.write
+    def configure_council(self, member_a: Address, member_b: Address, threshold: u256) -> str:
+        require(gl.message.sender_address == self.owner, 'ONLY_DAO')
+        require(self.council_size == 0 and self.count == 0, 'COUNCIL_LOCKED')
+        owner=addr(self.owner); a=addr(member_a); b=addr(member_b)
+        require(valid_addr(a) and valid_addr(b) and a!='0x'+'0'*40 and b!='0x'+'0'*40, 'INVALID_COUNCIL_MEMBER')
+        require(len({owner,a,b})==3, 'DUPLICATE_COUNCIL_MEMBER')
+        require(2 <= threshold <= 3, 'INVALID_THRESHOLD')
+        self.council_members[address_key(self.owner)]=u256(1)
+        self.council_members[address_key(member_a)]=u256(1)
+        self.council_members[address_key(member_b)]=u256(1)
+        self.council_member_a=address_key(member_a); self.council_member_b=address_key(member_b)
+        self.council_size=u256(3); self.council_threshold=u256(threshold)
+        return 'COUNCIL_CONFIGURED'
+
     @gl.public.write
     def create_schedule(self, beneficiary: Address, amount: u256, start: u256, end: u256, exception_bps: u256, repository: str, policy: str) -> int:
         require(gl.message.sender_address == self.owner, 'ONLY_DAO')
+        require(self.council_size > 0, 'COUNCIL_NOT_CONFIGURED')
         beneficiary_text=addr(beneficiary)
         require(valid_addr(beneficiary_text) and beneficiary_text!=addr(self.owner) and beneficiary_text!='0x'+'0'*40, 'INVALID_BENEFICIARY')
+        require(self.council_members.get(address_key(beneficiary),u256(0))==0, 'BENEFICIARY_IS_COUNCIL')
         require(0 < amount <= self.treasury, 'INVALID_AMOUNT')
         require(int(start) >= now() and start < end and int(end)-int(start) <= 31536000, 'INVALID_WINDOW')
         require(0 < exception_bps <= 10000 and int(amount)*int(exception_bps)//10000 > 0, 'INVALID_CAP')
@@ -83,18 +119,45 @@ class VestingExceptionAuthorizationGate(gl.Contract):
 
     @gl.public.write
     def record_cancellation(self, schedule_id: u256, decision_id: str, commit: str, path: str, sha256: str, expiry: u256) -> int:
-        require(gl.message.sender_address == self.owner, 'ONLY_DAO')
+        caller=self._council_caller()
         s = self._load(schedule_id)
         require(not s['exception_used'] and s['released'] < s['amount'], 'SCHEDULE_CLOSED')
         require(1 <= len(decision_id) <= 80 and decision_id.isascii(), 'INVALID_DECISION')
         require(locator(s['repository'], path, commit), 'INVALID_LOCATOR')
         require(len(sha256) == 64 and all(c in '0123456789abcdef' for c in sha256), 'INVALID_DIGEST')
         require(now() < int(expiry) <= now()+604800, 'INVALID_EXPIRY')
-        s['decision_revision'] += 1
-        s['decision'] = dict(id=decision_id, commit=commit, path=path, digest=sha256, expiry=int(expiry))
-        s['review']='PENDING'; s['receipt']=''; s['findings']=None
-        self.schedules[schedule_id]=encode(s)
-        return s['decision_revision']
+        nonce=u256(int(self.proposal_nonces.get(schedule_id,u256(0)))+1)
+        proposal=dict(nonce=int(nonce),decision=dict(id=decision_id,commit=commit,path=path,digest=sha256,expiry=int(expiry)),proposer=caller,approvals=1,status='AWAITING_QUORUM',activated_revision=0)
+        self.proposal_nonces[schedule_id]=nonce
+        self.proposals[schedule_id]=encode(proposal)
+        self.proposal_approvals[self._approval_key(schedule_id,nonce,caller)]=u256(1)
+        return int(nonce)
+
+    @gl.public.write
+    def approve_cancellation(self, schedule_id: u256, proposal_nonce: u256) -> str:
+        caller=self._council_caller()
+        s=self._load(schedule_id)
+        require(not s['exception_used'] and s['released'] < s['amount'], 'SCHEDULE_CLOSED')
+        raw=self.proposals.get(schedule_id,'')
+        require(bool(raw), 'PROPOSAL_NOT_FOUND')
+        proposal=json.loads(raw)
+        require(proposal['nonce']==int(proposal_nonce) and proposal['status']=='AWAITING_QUORUM', 'PROPOSAL_CLOSED')
+        require(now() < proposal['decision']['expiry'], 'EXPIRED')
+        key=self._approval_key(schedule_id,proposal_nonce,caller)
+        require(self.proposal_approvals.get(key,u256(0))==0, 'ALREADY_APPROVED')
+        self.proposal_approvals[key]=u256(1)
+        proposal['approvals']+=1
+        if proposal['approvals'] >= int(self.council_threshold):
+            s['decision_revision']+=1
+            s['decision']=proposal['decision']
+            s['review']='PENDING'; s['receipt']=''; s['findings']=None
+            proposal['status']='ACTIVATED'; proposal['activated_revision']=s['decision_revision']
+            self.schedules[schedule_id]=encode(s)
+            result='ACTIVATED'
+        else:
+            result='APPROVED'
+        self.proposals[schedule_id]=encode(proposal)
+        return result
 
     @gl.public.write
     def revoke_decision(self, schedule_id: u256) -> str:
@@ -193,7 +256,20 @@ class VestingExceptionAuthorizationGate(gl.Contract):
 
     @gl.public.view
     def get_info(self) -> dict:
-        return dict(name='VestingExceptionAuthorizationGate',version=2,owner=addr(self.owner),symbol='VEST',test_token=True,total_supply=SUPPLY,treasury=int(self.treasury),schedule_count=int(self.count))
+        return dict(name='VestingExceptionAuthorizationGate',version=3,owner=addr(self.owner),symbol='VEST',test_token=True,total_supply=SUPPLY,treasury=int(self.treasury),schedule_count=int(self.count),council_size=int(self.council_size),council_threshold=int(self.council_threshold))
+
+    @gl.public.view
+    def get_governance(self) -> dict:
+        members=[]
+        if self.council_size > 0:
+            members=[addr(self.owner),addr(self.council_member_a),addr(self.council_member_b)]
+        return dict(configured=self.council_size > 0,members=members,threshold=int(self.council_threshold))
+
+    @gl.public.view
+    def get_pending_decision(self, schedule_id: u256) -> dict:
+        self._load(schedule_id)
+        raw=self.proposals.get(schedule_id,'')
+        return json.loads(raw) if raw else {}
 
     @gl.public.view
     def get_schedule(self, schedule_id: u256) -> dict:

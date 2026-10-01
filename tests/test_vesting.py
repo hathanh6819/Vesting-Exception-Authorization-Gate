@@ -12,6 +12,8 @@ def warp(vm, timestamp):
 
 BEN = '0x2222222222222222222222222222222222222222'
 OUT = '0x3333333333333333333333333333333333333333'
+COUNCIL_A = '0x4444444444444444444444444444444444444444'
+COUNCIL_B = '0x5555555555555555555555555555555555555555'
 T = 1893456000
 POLICY = 'Permit an early release only when the DAO explicitly cancels the milestone without continuing obligations.'
 
@@ -19,6 +21,7 @@ POLICY = 'Permit an early release only when the DAO explicitly cancels the miles
 def setup(direct_vm, direct_deploy):
     warp(direct_vm, T)
     c = direct_deploy('contracts/vesting_exception_gate.py')
+    assert c.configure_council(address(COUNCIL_A), address(COUNCIL_B), 2) == 'COUNCIL_CONFIGURED'
     assert c.create_schedule(address(BEN), 10000, T, T+10000, 2500, 'dao/decisions', POLICY) == 1
     return c, direct_vm
 
@@ -31,7 +34,10 @@ def document(vm, **changes):
 
 def prepare(c, vm, body=None, digest=None, status=200, findings=None):
     body = document(vm) if body is None else body
-    assert isinstance(c.record_cancellation(1, 'cancel-1', 'a'*40, 'decision.json', digest or hashlib.sha256(body).hexdigest(), T+5000), int)
+    nonce=c.record_cancellation(1, 'cancel-1', 'a'*40, 'decision.json', digest or hashlib.sha256(body).hexdigest(), T+5000)
+    assert isinstance(nonce, int)
+    with vm.prank(address(COUNCIL_A)):
+        assert c.approve_cancellation(1, nonce) == 'ACTIVATED'
     vm.clear_mocks()
     vm.mock_web(r'raw\.githubusercontent\.com', dict(status=status, body=body.decode()))
     vm.mock_llm('Evaluate a DAO', json.dumps(findings if findings is not None else dict(cancellation_explicit=True, policy_covered=True, conflicting_obligations=False)))
@@ -51,9 +57,28 @@ def conserve(c):
 def test_runtime_string_addresses(direct_vm, direct_deploy):
     warp(direct_vm,T)
     c=direct_deploy('contracts/vesting_exception_gate.py')
+    assert c.configure_council(COUNCIL_A,COUNCIL_B,2)=='COUNCIL_CONFIGURED'
     assert c.create_schedule(BEN,10000,T,T+10000,2500,'dao/decisions',POLICY)==1
     assert c.get_schedule(1)['beneficiary']==BEN
     assert c.balance_of(BEN)=='0'
+
+def test_council_quorum_blocks_unilateral_activation(setup):
+    c, vm = setup
+    body=document(vm)
+    nonce=c.record_cancellation(1,'cancel-1','a'*40,'decision.json',hashlib.sha256(body).hexdigest(),T+5000)
+    assert c.get_schedule(1)['decision_revision']==0
+    pending=c.get_pending_decision(1)
+    assert pending['status']=='AWAITING_QUORUM' and pending['approvals']==1
+    with vm.prank(address(OUT)):
+        from genlayer.gl.vm import UserError
+        with pytest.raises(UserError,match='ONLY_COUNCIL'):
+            c.approve_cancellation(1,nonce)
+    with pytest.raises(Exception,match='ALREADY_APPROVED'):
+        c.approve_cancellation(1,nonce)
+    with vm.prank(address(COUNCIL_B)):
+        assert c.approve_cancellation(1,nonce)=='ACTIVATED'
+    assert c.get_schedule(1)['decision_revision']==1
+    assert c.get_pending_decision(1)['status']=='ACTIVATED'
 
 def test_happy_consume_transfer_replay(setup):
     c, vm = setup
